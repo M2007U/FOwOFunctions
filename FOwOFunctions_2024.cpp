@@ -1,4 +1,4 @@
-//version 2024.1125.2155
+//version 2024.1205.0347
 
 #pragma once
 
@@ -257,7 +257,7 @@ class FOwO_vector
     }
 
     template <typename TYPE>
-    vector<TYPE> cycleBelt(vector<TYPE> inVektor, char Direction, int step)
+    vector<TYPE> cycleBelt(vector<TYPE> inVektor, int step)
     {
         //move the items in the vector like a conveyor belt
         //aka Rotate or Shift
@@ -265,6 +265,14 @@ class FOwO_vector
         // 'f' : front : (0) <- (1) <- (2) <- (3) ... (n), then send (0) to behind (n)
         // 'b' : back  : (0) -> (1) -> (3) -> (3) ... (n), then send (n) in front of (0)
         //step : how many iterations to send one object to the front/back
+
+        //another way to understand this is that "step" is the position where we put the pipe
+        //then exchange what is on the left of the pipe and right of the pipe
+        //eg :
+        //say we have the following vector {0,1,2,3,4,5,6,7,8,9}
+        //if step is 7, then vector with the pipe would be something like {0,1,2,3,4,5,6,|,7,8,9}
+        //after flipping it, we will have {7,8,9,0,1,2,3,4,5,6}
+
 
         int SafeStep = step % inVektor.size();
 
@@ -284,7 +292,7 @@ class FOwO_vector
             }
         }
 
-        VekO = FOwO_vector_concat_bin(VekR, VekL);
+        VekO = concat_bin(VekR, VekL);
 
         return VekO;
     }
@@ -893,9 +901,9 @@ class FOwO_math
         //but raising something to a power will explode and go out of range,
         //so we need to use the iterative method
 
-        int Box = 1;
+        long long Box = 1;
 
-        for(int i = 0 ; i < pow ; i++)
+        for(long long i = 0 ; i < pow ; i++)
         {
             Box = Box * base;
 
@@ -954,7 +962,7 @@ class FOwO_math
 
     long long ModularMultiplicativeInverse (long long InMod, long long InOneSide)
     {
-        long SafetyTest = GreatestCommonFactor(InMod, InOneSide);
+        long long SafetyTest = GreatestCommonFactor(InMod, InOneSide);
 
         if (SafetyTest != 1)
         {
@@ -962,8 +970,8 @@ class FOwO_math
             return -1;
         }
 
-        long Answer = 1;
-        long Box = InOneSide;
+        long long Answer = 1;
+        long long Box = InOneSide;
 
         while(Box % InMod != 1)
         {
@@ -3615,6 +3623,62 @@ class FOwO_cryptography
         }
 
         return Carry;
+    }
+
+
+
+    vector<long long> DFHM_Chain (long long n, long long g)
+    {
+        //given the modular n and the generator, give all the possible public keys
+        //where ResultList[i] = g^i mod n
+
+        long long safeG = g % n;
+
+        vector<long long> ResultList = {safeG};
+        long long Box = safeG;
+
+        bool JobDone = false;
+        while(JobDone == false)
+        {
+            Box = (Box * safeG) % n;
+
+            if (Box == safeG)
+            {
+                JobDone = true;
+            }
+            else
+            {
+                ResultList.push_back(Box);
+            }
+
+        }
+
+        return fowo_vector.cycleBelt(ResultList,ResultList.size()-1);
+    }
+
+    bool DFHM_generatorTest (long long n, long long g)
+    {
+        //see if a given number is a legit generator in mod n
+
+        vector<long long> GeneratorList = DFHM_Chain(n,g);
+
+        return GeneratorList.size() == n - 1;
+    }
+
+    vector<long long> DFHM_generatorList (long long n)
+    {
+        //generate a list of generator based on the mod n 
+
+        vector<long long> ResultList = {};
+
+        for(long long i = 0 ; i <= n ; i++)
+        {
+            if (DFHM_generatorTest(n,i))
+            {
+                ResultList.push_back(i);
+            }
+        }
+        return ResultList;
     }
 
 
