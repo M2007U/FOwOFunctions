@@ -20,6 +20,7 @@
 
 #include <cmath>
 #include <math.h>
+#include <random>
 
 #include <typeinfo>
 #include <sys/types.h>
@@ -30,6 +31,99 @@
 #include <arpa/inet.h>
 
 using namespace std;
+
+class FOwO_generic
+{
+    public:
+
+    template <typename TYPE>
+    void swap(TYPE &ObjectA, TYPE &ObjectB)
+    {
+        TYPE ObjectC;
+
+        ObjectC = ObjectA;
+        ObjectA = ObjectB;
+        ObjectB = ObjectC;
+    }
+
+    template <typename TYPE>
+    string DatatypeOfVar (TYPE inBox)
+    {
+        //MACHINE DEPENDENT
+        string outString(typeid(inBox).name());
+
+        return outString;
+    }
+
+    template <typename TYPE>
+    bool DatatypeOfVar_IsNumeric(TYPE inBox)
+    {
+        //"Sp" means "Sample"
+        int         Sp_i;
+        long        Sp_l;
+        long long   Sp_ll;
+        float       Sp_f;
+        double      Sp_d;
+
+        //"Dts" means "DatatypeString"
+        string Dts_i(typeid(Sp_i).name());
+        string Dts_l(typeid(Sp_l).name());
+        string Dts_ll(typeid(Sp_ll).name());
+        string Dts_f(typeid(Sp_f).name());
+        string Dts_d(typeid(Sp_d).name());
+
+        string Dts_Box(typeid(inBox).name());
+
+        return
+            (Dts_Box == Dts_i) ||
+            (Dts_Box == Dts_l) ||
+            (Dts_Box == Dts_ll) ||
+            (Dts_Box == Dts_f) ||
+            (Dts_Box == Dts_d);
+    }
+
+    template <typename TYPE>
+    string DataTypeOfVar_Predef(TYPE InVar)
+    {
+        //"Sp" means "Sample"
+
+        int         Sp_i;
+        long        Sp_l;
+        long long   Sp_ll;
+        float       Sp_f;
+        double      Sp_d;
+
+        char        Sp_c;
+        string      Sp_s;
+
+
+
+        //"Dts" means "DatatypeString"
+
+        string Dts_i(typeid(Sp_i).name());
+        string Dts_l(typeid(Sp_l).name());
+        string Dts_ll(typeid(Sp_ll).name());
+        string Dts_f(typeid(Sp_f).name());
+        string Dts_d(typeid(Sp_d).name());
+
+        string Dts_c(typeid(Sp_c).name());
+        string Dts_s(typeid(Sp_s).name());
+
+
+        string Dts_Var(typeid(InVar).name());
+
+        if      (Dts_Var == Dts_i)  {return "int";}
+        else if (Dts_Var == Dts_l)  {return "long";}
+        else if (Dts_Var == Dts_ll) {return "long long";}
+        else if (Dts_Var == Dts_f)  {return "float";}
+        else if (Dts_Var == Dts_d)  {return "double";}
+        else if (Dts_Var == Dts_c)  {return "char";}
+        else if (Dts_Var == Dts_s)  {return "string";}
+        else {return "unknown";}
+
+    }
+
+};
 
 
 
@@ -478,13 +572,9 @@ class FOwO_bool
 
 
 
-class FOwO_math
+class FOwO_math_number
 {
-    public :
-
-    FOwO_vector fowo_vector;
-
-    FOwO_math(){}
+    public:
 
     long double Konst(string Name)
     {
@@ -493,136 +583,6 @@ class FOwO_math
         else if (Name == "gold" || Name == "φ"){return 1.61803398874;}
         else {return 0;}
     }
-
-    long long powInt (long long base, long long pow)
-    {
-        //returns base^pow
-        //if pow is < 0, then return -1
-
-        if (pow < 0)
-        {
-            return -1;
-        }
-
-        int Box = 1;
-        for(int i = 0 ; i < pow ; i++)
-        {
-            Box = Box * base;
-        }
-
-        return Box;
-    }
-
-    template <typename TYPE>
-    TYPE powTYPE(TYPE base, TYPE pow)
-    {
-        TYPE Box = 1;
-
-        for(TYPE i = 0 ; i < pow ; i++)
-        {
-            Box = Box * base;
-        }
-
-        return Box;
-    }
-
-
-    float round (float Given, int mode)
-    {
-        //rounding a float to the nearest integer where
-        //mode :
-        //0 : round near
-        //1 : round down
-        //2 : round up
-
-        int Result = 0;
-        int PartInt = (int)Given;
-        float PartFrac = Given - PartInt;
-
-        if(mode == 0)
-        {
-            //round near
-            if(PartFrac < 0.5)
-            {
-                Result = PartInt;
-            }
-            else if(PartFrac >= 0.5)
-            {
-                Result = PartInt + 1;
-            }
-        }
-        else if (mode == 1)
-        {
-            //round down
-            Result = PartInt;
-        }
-        else if (mode == 2)
-        {
-            //round up
-            if(PartFrac > 0)
-            {
-                Result = PartInt + 1;
-            }
-            else //PartFrac is 0
-            {
-                Result = PartInt;
-            }
-        }
-
-        return Result;
-    }
-
-    template <typename T>
-    T SumVector(vector<T> inVektor)
-    {
-        //sum all numbers in the vector
-        //works for int, float, long, doubles, etc
-
-        T returnResult = 0;
-        for(int i = 0 ; i < inVektor.size() ; i++)
-        {
-            returnResult += inVektor[i];
-        }
-
-        return returnResult;
-    }
-
-    double rootAprox(double input, float root, int iter, double initBoxL, double initBoxR)
-    {
-        //try to guess the approximate root of a number
-        //this is meant for experiments
-
-        double boxL;
-        double boxR;
-        double boxC;
-        double boxF;
-
-        boxL = initBoxL;
-        boxR = initBoxR;
-
-        for (int i = 0 ; i < iter ; i++)
-        {
-            boxC = (boxL + boxR) / 2;
-            boxF = pow(boxC,root);
-
-            if (boxF == input)
-            {
-                boxL = boxC;
-                boxR = boxC;
-                i = iter;
-            }
-            else if (boxF < input)
-            {
-                boxL = boxC;
-            }
-            else if (boxF > input)
-            {
-                boxR = boxC;
-            }
-        }
-
-        return (boxL + boxR) / 2;
-    }   
 
     int DigitSum(long input)
     {
@@ -713,187 +673,30 @@ class FOwO_math
         return box1;
     }
 
-    long double Clamp(long double InLow, long double InHigh, long double InPass)
-    {
-        //clamping a float in between 2 floats
+};
 
-        if(InLow <= InHigh)
+class FOwO_math_discrete
+{
+    public:
+
+    long long powInt (long long base, long long pow)
+    {
+        //returns base^pow
+        //if pow is < 0, then return -1
+
+        if (pow < 0)
         {
-            if(InPass <= InLow)
-            {
-                return InLow;
-            }
-            else if (InHigh <= InPass)
-            {
-                return InHigh;
-            }
-        }
-        else
-        {
-            return InPass;
+            return -1;
         }
 
-        return InPass;
-    }
-
-
-
-    long long Permutation(long long InStart, long long InRange)
-    {
-        if (InRange <= 0){return 1;}
-        if (InRange > InStart){return 0;}
-        if (InStart == 0){return 1;}
-
-        long CurrentCounter = 0;
-        long CurrentMultiplier = InStart;
-        long CurrentBox = 1;
-
-        while(CurrentCounter < InRange)
+        int Box = 1;
+        for(int i = 0 ; i < pow ; i++)
         {
-            CurrentBox = CurrentBox * CurrentMultiplier;
-            CurrentMultiplier--;
-            CurrentCounter++;
+            Box = Box * base;
         }
 
-        return CurrentBox;
+        return Box;
     }
-
-    long long Factorial(long long Input)
-    {
-        if (Input == 0){return 1;}
-        return Permutation(Input, Input);
-    }
-
-    long long Combination(long long InChoice, long InChoose)
-    {
-        
-        long long AnswerA = Permutation(InChoice, InChoose);
-        
-        long long AnswerB = Factorial(InChoose);
-        
-        long long Answer = AnswerA / AnswerB;
-        
-        return Answer ;
-    }
-
-    vector<long long> PascalTriangle(long long InRow)
-    {
-        
-        vector<long long> outVector = {};
-        
-        for(int i = 0 ; i < (int)InRow + 1 ; i++)
-        {
-            outVector.push_back( Combination(InRow,i) );
-        }
-        return outVector;
-    }
-
-
-
-    long double Trig_DegToRad(long double Input)
-    {
-        return Input / 180 * Konst("pi");
-    }
-
-    long double Trig_RadToDeg(long double Input)
-    {
-        return Input / Konst("pi") * 180;
-    }
-
-
-
-    float LERP_single(float InA, float InB, float InT)
-    {
-        //Linear Interpolate Between 2 numbers
-
-        if(InB > InA)
-        {
-            float Box = InA;
-            InA = InB;
-            InB = Box;
-        }
-
-        return (InB-InA)*InT + InA;
-    }
-
-    float LERPinv_single(float InA, float InB, float InR)
-    {
-        //inverse Linear Interpolate Between 2 numbers
-
-        if(InB > InA)
-        {
-            float Box = InA;
-            InA = InB;
-            InB = Box;
-        }
-
-        return (InR - InA) / (InB - InA);
-    }
-
-    vector<float> LERP_vector(vector<float> InA, vector<float> InB, float InT)
-    {
-        //Linear Interpolate between 2 vectors
-
-        vector<float> outVector = {};
-
-        if(InA.size() == InB.size())
-        {
-            for(int i = 0 ; i < InA.size() ; i++)
-            {
-                outVector.push_back( LERP_single(InA[i],InB[i],InT) );
-            }
-        }
-
-        return outVector;
-    }
-
-    template <typename TYPE>
-    TYPE VectorDistance (vector<TYPE> VectorA, vector<TYPE> VectorB)
-    {
-        vector<int>     DatatypeBox_i = {};
-        vector<float>   DatatypeBox_f = {};
-        vector<long>    DatatypeBox_l = {};
-        vector<double>  DatatypeBox_d = {};
-
-        string DatatypeBox_is = typeid(DatatypeBox_i).name();
-        string DatatypeBox_ls = typeid(DatatypeBox_l).name();
-        string DatatypeBox_fs = typeid(DatatypeBox_f).name();
-        string DatatypeBox_ds = typeid(DatatypeBox_d).name();
-
-        string DatatypeBox_VA = typeid(VectorA).name();
-        string DatatypeBox_VB = typeid(VectorB).name();
-
-        vector<string> Datatype_Available = {DatatypeBox_is, DatatypeBox_ls, DatatypeBox_fs, DatatypeBox_ds};
-
-        if ( fowo_vector.FindObjPos(Datatype_Available,DatatypeBox_VA,'l') == -1 || fowo_vector.FindObjPos(Datatype_Available,DatatypeBox_VB,'l') == -1 )
-        {
-            TYPE result;
-            return result;
-        }
-
-        if (VectorA.size() == 0 || VectorB.size() == 0)
-        {
-            TYPE result;
-            return result;
-        }
-
-        if (VectorA.size() != VectorB.size())
-        {
-            TYPE result;
-            return result;
-        }
-
-        double DistanceBox = 0;
-        for(int i = 0 ; i < VectorA.size() ; i++)
-        {
-            DistanceBox += pow(((double)VectorA[i] - (double)VectorB[i]) , 2);
-        }
-        DistanceBox = pow(DistanceBox, 0.5);
-
-        return (TYPE)DistanceBox ;
-    }
-
-
 
     long long ModularExponent (long long base, long long pow, long long mod)
     {
@@ -992,6 +795,359 @@ class FOwO_math
     }
 
 
+};
+
+class FOwO_math_continuos
+{
+    public:
+
+    FOwO_vector fowo_vector;
+
+    //rounding a float to the nearest integer where
+    //mode :
+    //near : round near
+    //down : round down
+    //up   : round up
+    double round (double Given, string mode)
+    {
+        int Result = 0;
+        int PartInt = (int)Given;
+        double PartFrac = Given - PartInt;
+
+        if(mode == "near")
+        {
+            //round near
+            if(PartFrac < 0.5)
+            {
+                Result = PartInt;
+            }
+            else if(PartFrac >= 0.5)
+            {
+                Result = PartInt + 1;
+            }
+        }
+        else if (mode == "down")
+        {
+            //round down
+            Result = PartInt;
+        }
+        else if (mode == "up")
+        {
+            //round up
+            if(PartFrac > 0)
+            {
+                Result = PartInt + 1;
+            }
+            else //PartFrac is 0
+            {
+                Result = PartInt;
+            }
+        }
+
+        return Result;
+    }
+
+    //try to guess the approximate root of a number
+    //this is meant for experiments
+    double rootAprox(double input, float root, int iter, double initBoxL, double initBoxR)
+    {
+        double boxL;
+        double boxR;
+        double boxC;
+        double boxF;
+
+        boxL = initBoxL;
+        boxR = initBoxR;
+
+        for (int i = 0 ; i < iter ; i++)
+        {
+            boxC = (boxL + boxR) / 2;
+            boxF = pow(boxC,root);
+
+            if (boxF == input)
+            {
+                boxL = boxC;
+                boxR = boxC;
+                i = iter;
+            }
+            else if (boxF < input)
+            {
+                boxL = boxC;
+            }
+            else if (boxF > input)
+            {
+                boxR = boxC;
+            }
+        }
+
+        return (boxL + boxR) / 2;
+    }   
+
+    //clamping a float in between 2 floats
+    long double Clamp(long double InLow, long double InHigh, long double InPass)
+    {
+        
+
+        if(InLow <= InHigh)
+        {
+            if(InPass <= InLow)
+            {
+                return InLow;
+            }
+            else if (InHigh <= InPass)
+            {
+                return InHigh;
+            }
+        }
+        else
+        {
+            return InPass;
+        }
+
+        return InPass;
+    }
+
+    
+    //Linear Interpolate Between 2 numbers
+    double LERP_single(double InA, double InB, double InT)
+    {
+        if(InB > InA)
+        {
+            double Box = InA;
+            InA = InB;
+            InB = Box;
+        }
+
+        return (InB-InA)*InT + InA;
+    }
+
+    //inverse Linear Interpolate Between 2 numbers
+    double LERPinv_single(double InA, double InB, double InR)
+    {
+        if(InB > InA)
+        {
+            double Box = InA;
+            InA = InB;
+            InB = Box;
+        }
+
+        return (InR - InA) / (InB - InA);
+    }
+
+    //Linear Interpolate between 2 vectors
+    vector<double> LERP_vector(vector<double> InA, vector<double> InB, double InT)
+    {
+        vector<double> outVector = {};
+
+        if(InA.size() == InB.size())
+        {
+            for(int i = 0 ; i < InA.size() ; i++)
+            {
+                outVector.push_back( LERP_single(InA[i],InB[i],InT) );
+            }
+        }
+
+        return outVector;
+    }
+
+    template <typename TYPE>
+    TYPE VectorDistance (vector<TYPE> VectorA, vector<TYPE> VectorB)
+    {
+        vector<int>     DatatypeBox_i = {};
+        vector<float>   DatatypeBox_f = {};
+        vector<long>    DatatypeBox_l = {};
+        vector<double>  DatatypeBox_d = {};
+
+        string DatatypeBox_is = typeid(DatatypeBox_i).name();
+        string DatatypeBox_ls = typeid(DatatypeBox_l).name();
+        string DatatypeBox_fs = typeid(DatatypeBox_f).name();
+        string DatatypeBox_ds = typeid(DatatypeBox_d).name();
+
+        string DatatypeBox_VA = typeid(VectorA).name();
+        string DatatypeBox_VB = typeid(VectorB).name();
+
+        vector<string> Datatype_Available = {DatatypeBox_is, DatatypeBox_ls, DatatypeBox_fs, DatatypeBox_ds};
+
+        if ( fowo_vector.FindObjPos(Datatype_Available,DatatypeBox_VA,'l') == -1 || fowo_vector.FindObjPos(Datatype_Available,DatatypeBox_VB,'l') == -1 )
+        {
+            TYPE result;
+            return result;
+        }
+
+        if (VectorA.size() == 0 || VectorB.size() == 0)
+        {
+            TYPE result;
+            return result;
+        }
+
+        if (VectorA.size() != VectorB.size())
+        {
+            TYPE result;
+            return result;
+        }
+
+        double DistanceBox = 0;
+        for(int i = 0 ; i < VectorA.size() ; i++)
+        {
+            DistanceBox += pow(((double)VectorA[i] - (double)VectorB[i]) , 2);
+        }
+        DistanceBox = pow(DistanceBox, 0.5);
+
+        return (TYPE)DistanceBox ;
+    }
+
+
+
+
+
+};
+
+class FOwO_math_geometry
+{
+    public:
+
+    FOwO_math_number fowo_number;
+
+    long double Trig_DegToRad(long double Input)
+    {
+        return Input / 180 * fowo_number.Konst("pi");
+    }
+
+    long double Trig_RadToDeg(long double Input)
+    {
+        return Input / fowo_number.Konst("pi") * 180;
+    }
+
+
+};
+
+class FOwO_math_combinatory
+{
+    
+    long long Permutation(long long InStart, long long InRange)
+    {
+        if (InRange <= 0){return 1;}
+        if (InRange > InStart){return 0;}
+        if (InStart == 0){return 1;}
+
+        long CurrentCounter = 0;
+        long CurrentMultiplier = InStart;
+        long CurrentBox = 1;
+
+        while(CurrentCounter < InRange)
+        {
+            CurrentBox = CurrentBox * CurrentMultiplier;
+            CurrentMultiplier--;
+            CurrentCounter++;
+        }
+
+        return CurrentBox;
+    }
+
+    long long Factorial(long long Input)
+    {
+        if (Input == 0){return 1;}
+        return Permutation(Input, Input);
+    }
+
+    long long Combination(long long InChoice, long InChoose)
+    {
+        
+        long long AnswerA = Permutation(InChoice, InChoose);
+        
+        long long AnswerB = Factorial(InChoose);
+        
+        long long Answer = AnswerA / AnswerB;
+        
+        return Answer ;
+    }
+
+    vector<long long> PascalTriangle(long long InRow)
+    {
+        
+        vector<long long> outVector = {};
+        
+        for(int i = 0 ; i < (int)InRow + 1 ; i++)
+        {
+            outVector.push_back( Combination(InRow,i) );
+        }
+        return outVector;
+    }
+
+};
+
+class FOwO_math_random
+{
+    public:
+
+    FOwO_math_continuos fowo_math_cowon;
+
+    std::random_device Mersenne_rd;
+    std::mt19937 Mersenne_gen;
+    std::uniform_real_distribution<double> Mersenne_dist;
+
+    FOwO_math_random() : Mersenne_gen(Mersenne_rd()) , Mersenne_dist(0,1) {} //1 is exclusive
+
+    //generate a random double between 0 and 1
+    double Mersenne_norm()
+    {
+        return Mersenne_dist(Mersenne_gen);
+    }
+
+    //generate a random float between a min and a max
+    double Mersenne_float(double InMin, double InMax)
+    {
+        return (InMax - InMin) * Mersenne_norm() + InMin;
+    }
+
+    //generate a random int between a min and a max
+    long long Mersenne_int(long long InMin, long long InMax)
+    {
+        return fowo_math_cowon.round(Mersenne_float((double) InMin, (double)InMax + 1),"down");
+    }
+};
+
+class FOwO_math
+{
+    public :
+    FOwO_vector fowo_vector;
+
+    FOwO_math_number nUwUmber;
+    FOwO_math_discrete dOwOs;
+    FOwO_math_continuos cOwOn;
+    FOwO_math_geometry geOwO;
+    FOwO_math_combinatory cOwOmbo;
+    FOwO_math_random randOwOm;
+
+    FOwO_math(){}
+
+    template <typename TYPE>
+    TYPE powTYPE(TYPE base, TYPE pow)
+    {
+        TYPE Box = 1;
+
+        for(TYPE i = 0 ; i < pow ; i++)
+        {
+            Box = Box * base;
+        }
+
+        return Box;
+    }
+
+    template <typename T>
+    T SumVector(vector<T> inVektor)
+    {
+        //sum all numbers in the vector
+        //works for int, float, long, doubles, etc
+
+        T returnResult = 0;
+        for(int i = 0 ; i < inVektor.size() ; i++)
+        {
+            returnResult += inVektor[i];
+        }
+
+        return returnResult;
+    }
 
     template <typename TYPE>
     TYPE MinOrMax (vector<TYPE> InList, string InMode , TYPE ReturnIfNull)
@@ -1280,8 +1436,8 @@ class FOwO_string_manip
 
     string trim_Safe(string InString, int start, int end)
     {
-        int PosS = (int)fowo_math_Helper.Clamp(0,(float) InString.length()-1, (float) start);
-        int PosE = (int)fowo_math_Helper.Clamp(0,(float) InString.length()-1, (float) end);
+        int PosS = (int)fowo_math_Helper.cOwOn.Clamp(0,(float) InString.length()-1, (float) start);
+        int PosE = (int)fowo_math_Helper.cOwOn.Clamp(0,(float) InString.length()-1, (float) end);
 
         return trim(InString,PosS,PosE);
     }
@@ -1657,7 +1813,7 @@ class FOwO_string_manip
 
     string slip(string InString, int InPosition, string InSubstring)
     {
-        int SlipPosition = fowo_math_Helper.Clamp(0,InString.length(),InPosition);
+        int SlipPosition = fowo_math_Helper.cOwOn.Clamp(0,InString.length(),InPosition);
 
         int CurrentPosition = 0;
         string Plate = "";
@@ -2641,6 +2797,7 @@ class FOwO_cout
 {
     public:
 
+    FOwO_generic fowo_gen;
     FOwO_string_shorthand fowo_string_shorthand;
     FOwO_string fowo_string;
 
@@ -2917,6 +3074,81 @@ class FOwO_cout
         return Table;
     }
 
+    template <typename TYPE>
+    bool PromptForNumber(string InPromptText, TYPE& InCarrier)
+    {
+        string USERInsert = "";
+        cout << ConsoleQuick("prompt",InPromptText);
+        getline(cin,USERInsert);
+
+        if (fowo_string.mOwOth.isNumber_Simple(USERInsert) > 0)
+        {
+            if (fowo_gen.DataTypeOfVar_Predef(InCarrier) == "int")
+            {
+                InCarrier = stoi(USERInsert);
+                return true;
+            }
+            else if (fowo_gen.DataTypeOfVar_Predef(InCarrier) == "long")
+            {
+                InCarrier = stol(USERInsert);
+                return true;
+            }
+            else if (fowo_gen.DataTypeOfVar_Predef(InCarrier) == "long long")
+            {
+                InCarrier = stoll(USERInsert);
+                return true;
+            }
+            else if (fowo_gen.DataTypeOfVar_Predef(InCarrier) == "float")
+            {
+                InCarrier = stof(USERInsert);
+                return true;
+            }
+            else if (fowo_gen.DataTypeOfVar_Predef(InCarrier) == "double")
+            {
+                InCarrier = stod(USERInsert);
+                return true;
+            }
+            else
+            {
+                cout << ConsoleQuick("error","carrier's datatype is invalid") << endl;
+                return false;
+            }
+        }
+        else
+        {
+            cout << ConsoleQuick("error","user input cannot be interpreted as a number") << endl;
+            return false;
+        }
+
+        return false;
+
+        /*
+        
+        int BoxInt;
+        long BoxLong;
+        long long BoxLongLong;
+        float BoxFloat;
+        double BoxDouble;
+        char BoxChar;
+        string BoxString;
+
+        string USERInput;
+
+        fowo.cOwOut.PromptForNumber("gimme an int      : ",BoxInt);
+        fowo.cOwOut.PromptForNumber("gimme a long      : ",BoxLong);
+        fowo.cOwOut.PromptForNumber("gimme a long long : ",BoxLongLong);
+        fowo.cOwOut.PromptForNumber("gimme a float     : ",BoxFloat);
+        fowo.cOwOut.PromptForNumber("gimme a double    : ",BoxDouble);
+
+        cout << "user provided : " << endl;
+        cout << BoxInt << endl;
+        cout << BoxLong << endl;
+        cout << BoxLongLong << endl;
+        cout << BoxFloat << endl;
+        cout << BoxDouble << endl;
+
+        */
+    }
 
 };
 
@@ -3780,7 +4012,7 @@ class FOwO_experimental
 class FOwO
 {
     public :
-
+    FOwO_generic gOwOn;
     FOwO_cout cOwOut;
     FOwO_vector vectOwOr;
     FOwO_bool bOwOl;
@@ -3790,47 +4022,22 @@ class FOwO
     FOwO_cryptography cryptOwOgraphy;
     FOwO_experimental expOwOmental;
 
+    FOwO()
+    {
+        //for now nothing
+    }
+
+    FOwO(FOwO& InNewFOwO)
+    {
+        //nothing
+    }
+
     ~FOwO()
     {
         cout << strOwOng.shOwOrthand.ColorText("d") << strOwOng.shOwOrthand.ColorBackground("d");
     }
 
-    template <typename TYPE>
-    void swap(TYPE &ObjectA, TYPE &ObjectB)
-    {
-        TYPE ObjectC;
-
-        ObjectC = ObjectA;
-        ObjectA = ObjectB;
-        ObjectB = ObjectC;
-    }
-
-    template <typename TYPE>
-    string DatatypeOfVar (TYPE inBox)
-    {
-        //MACHINE DEPENDENT
-        string outString(typeid(inBox).name());
-
-        return outString;
-    }
-
-    template <typename TYPE>
-    bool DatatypeOfVar_IsNumeric(TYPE inBox)
-    {
-        int DatatypeInt;
-        long DatatypeLong;
-        float DatatypeFloat;
-        double DatatypeDouble;
-
-        string DatatypeStringInt(typeid(DatatypeInt).name());
-        string DatatypeStringLong(typeid(DatatypeLong).name());
-        string DatatypeStringFloat(typeid(DatatypeFloat).name());
-        string DatatypeStringDouble(typeid(DatatypeDouble).name());
-
-        string DatatypeStringBox(typeid(inBox).name());
-
-        return vectOwOr.FindObjPos<string>({DatatypeStringInt,DatatypeStringLong,DatatypeStringFloat,DatatypeStringDouble},DatatypeStringBox,'l') > -1;
-    }
+    
 };
 
 
