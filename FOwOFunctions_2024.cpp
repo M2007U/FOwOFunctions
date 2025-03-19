@@ -10,6 +10,7 @@
 
 #include <functional>
 
+//for file writing and reading
 #include <fstream>
 #include <sstream>
 
@@ -26,9 +27,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+//for networks
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+//for directories
+#include <sys/stat.h>
+#include <bits/stdc++.h>
+#include <dirent.h>
 
 using namespace std;
 
@@ -1234,6 +1241,11 @@ class FOwO_string_shorthand
         return outString;
     }
 
+    string ColorTextSegment( string InString , string InColor )
+    {
+        return ColorText(InColor) + InString + ColorText("d");
+    }
+
     string ColorBackground (string InString)
     {
         //returns the hidden charracter for color changing the string on a console
@@ -1262,6 +1274,11 @@ class FOwO_string_shorthand
 class FOwO_string_convert
 {
     public :
+
+    string CstrToString (char InCstr[])
+    {
+        return string(InCstr);
+    }
 
     string charToString(char Kar)
     {
@@ -3154,6 +3171,514 @@ class FOwO_cout
 
 
 
+
+
+class FOwO_directory_file
+{
+    public :
+
+    FOwO_cout fowo_cout;
+
+    bool convertStringToFile(string InFileName, string InContent,  string InIosMode)
+    {
+        //writes a string to a file
+        //if successfull, return true, else false
+
+        fstream OwOWriter;
+
+        if (InIosMode == "out")
+        {
+            OwOWriter.open(InFileName,ios::out);
+        }
+        else if (InIosMode == "ate")
+        {
+            OwOWriter.open(InFileName,ios::ate);
+        }
+
+        if (!OwOWriter)
+        {
+            cout << fowo_cout.ConsoleQuick("error","failed to write to file") << endl;
+            return false;
+        }
+        else
+        {
+            OwOWriter << InContent;
+        }
+
+        OwOWriter.close();
+        return true;
+    }
+
+    bool convertFileToString(string InFileName, string & StringBox)
+    {
+        fstream OwOReader;
+        OwOReader.open(InFileName, ios::binary | ios::in);
+        if (!OwOReader)
+        {
+            OwOReader.close();
+            return false;
+        }
+        streamsize size = OwOReader.tellg(); //get file size
+        OwOReader.seekg(0,ios::beg); //move to beginning
+        vector<char> buffer(size);
+        OwOReader.read(buffer.data(),size);//read file into buffer
+        string FinalString ( buffer.begin(), buffer.end() );//convert to string
+        StringBox = FinalString;
+
+        return true;
+    }
+
+
+};
+
+class FOwO_directory
+{
+    public :
+
+    FOwO_cout fowo_cout;
+    FOwO_string fowo_string;
+    FOwO_directory_file fowo_dir_file;
+
+    string CurrentOperatingSystem; //windows , macos , linux
+
+    string DirCur; //the current directory
+    string DirTmp;
+    string DirTmp2;
+    char DirSprt; //the charracter used to separate the directory, by common sense it is '/' (Mac and Linux) or '\' (Windows), this needs to be coded differently based on operating systems
+    string DirSame; //the current directory, usually "."
+    string DirUp; //the upper dirrectory, usually ".."
+
+    void setup(string InitialDirectory, string InOperatingSystem , char InDirSprt, string InDirSame, string InDirUp)
+    {
+        CurrentOperatingSystem = InOperatingSystem;
+        DirSprt = InDirSprt;
+        DirSame = InDirSame;
+        DirUp = InDirUp;
+
+        if ( PathExist(InitialDirectory) == false  )
+        {
+            cout << fowo_cout.ConsoleQuick("error","initial directory does not exist, will force initial directory to : " + DirSprt ) << endl;
+        }
+        else
+        {
+            DirCur = InitialDirectory;//this can be relative or absolute
+        }
+    }
+
+    bool PathExist (string InString)//attempt to open a directory, if it exist, then return true, else, return nullptr
+    {
+        DIR* dirptr = opendir(InString.c_str());
+        if ( dirptr == nullptr)
+        {
+            return false;
+        }
+        else
+        {
+            closedir(dirptr);
+            return true;
+        }
+    }
+
+    bool isDirectory(string GivenPath)
+    {
+        //if given path is a directory, then return true
+        bool ReturnResult;
+        struct stat catchStat;
+        if( stat(GivenPath.c_str(),&catchStat) == 0 ) //if stat() is able to put something into catchStat from the given path and retrn 0, then procceed
+        {
+            ReturnResult = S_ISDIR(catchStat.st_mode);
+        }
+        else
+        {
+            ReturnResult = false;
+        }
+        return ReturnResult;
+    }
+ 
+    bool isFile(string GivenPath)
+    {
+        //if given path is a file, then return true
+        bool ReturnResult;
+        struct stat catchStat;
+        if( stat(GivenPath.c_str(),&catchStat) == 0 ) //if stat() is able to put something into catchStat from the given path and retrn 0, then procceed
+        {
+            ReturnResult = S_ISREG(catchStat.st_mode);
+        }
+        else
+        {
+            ReturnResult = false;
+        }
+        return ReturnResult;
+    }
+
+    bool GotoDir_Relative ( string InPath , string InMode )
+    {
+        /*
+        InPath : based on where we are in the directory, treat each segment as a folder click
+
+        InMode : "walk" or "plan" ?
+        
+        if "walk" ,
+            if the segment is accessible , then go there, else ignore segment
+        else if "plan"
+            if the segment is accessible , then move on to the next segment, else HALT, do not go
+
+        */
+
+        string Plate = InPath; //this is the todo list
+        string ReadHead = "";
+        DirTmp = DirCur; //used to keeptrack of the current dir in this function
+        DirTmp2 = ""; //used to test if a directory exists
+
+        //remove heading slahes (if there is one)
+        if(fowo_string.dOwOtect.atPosIsChar(Plate , 0 , DirSprt) && Plate.length() > 1){Plate = fowo_string.mOwOnip.trim_Safe(Plate , 1 , Plate.length()-1 ) ;}
+
+        //remove tailing slashes (if there is one)
+        if(fowo_string.dOwOtect.atPosIsChar(Plate , Plate.length()-1 , '/') && Plate.length() > 1){Plate = fowo_string.mOwOnip.trim_Safe(Plate , 0 , Plate.length()-1 );}
+
+        bool EmergencyBreak = false;
+        while(Plate.length() > 0 && EmergencyBreak == false)
+        {
+            //get the first tiny segment
+            
+            //get the slash position
+            int slashPosition = fowo_string.dOwOtect.FindCharPos(Plate,DirSprt,'l');
+
+            //start trimming
+            if(slashPosition > -1) //if a slash can be found
+            {
+                ReadHead = fowo_string.mOwOnip.trim_Safe( Plate , 0 , slashPosition-1 );
+                Plate = fowo_string.mOwOnip.trim_Safe( Plate , slashPosition+1 , Plate.length()-1 );
+            }
+            else
+            {
+                //no more slash can be found
+                ReadHead = Plate;
+                Plate = "";
+            }
+            
+            //try to dip your toes into the new place
+            //here we have " DirTmp2 = SomeFunction(DirTmp) "
+            if ( ReadHead == DirSame)
+            {
+                //stay the same
+                DirTmp2 = DirTmp;
+            }
+            else if (ReadHead == DirUp)
+            {
+                //go one level up
+                int slashPosition = fowo_string.dOwOtect.FindCharPos(DirTmp, DirSprt, 'r'); //get slash position
+                DirTmp2 = fowo_string.mOwOnip.trim_Safe( DirTmp , 0 , slashPosition - 1 ); //trim
+            }
+            else
+            {
+                //go to that folder
+                DirTmp2 = DirTmp + DirSprt + ReadHead;
+            }
+
+            //is it ok ?
+            DIR* dir_try = opendir(DirTmp2.c_str());
+            if(dir_try != nullptr)
+            {
+                closedir(dir_try);
+                DirTmp = DirTmp2;
+            }
+            else if (InMode == "plan")
+            {
+                EmergencyBreak = true;
+            }
+
+        }
+
+        if (EmergencyBreak == false) //something went wrong in the process, like directory does not exist
+        {
+            DirCur = DirTmp; //confirm changes
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+        return false;
+    }
+
+    string PrintPermission (mode_t InMode)
+    {
+        string ResultString = "";
+
+        //( BoolExpr ? valueIfTrue : valueIfFalse )
+        ResultString += ( (InMode & S_IRUSR) ? "r" : "." );
+        ResultString += ( (InMode & S_IWUSR) ? "w" : "." );
+        ResultString += ( (InMode & S_IXUSR) ? "x" : "." );
+        ResultString += " - "; 
+        ResultString += ( (InMode & S_IRGRP) ? "r" : "." );
+        ResultString += ( (InMode & S_IWGRP) ? "w" : "." );
+        ResultString += ( (InMode & S_IXGRP) ? "x" : "." );
+        ResultString += " - ";
+        ResultString += ( (InMode & S_IROTH) ? "r" : "." );
+        ResultString += ( (InMode & S_IWOTH) ? "w" : "." );
+        ResultString += ( (InMode & S_IXOTH) ? "x" : "." );
+
+        return ResultString;
+    }
+
+    string PrintDirectory ( string InMode /* list : print the current dir ; peek : print the contents of a folder in the current dir */ , string IfPeekFolderName )
+    {
+        string PrintString = "";
+
+        //get the path to print
+        if (InMode == "list")
+        {
+            DirTmp = DirCur;
+        }
+        else if (InMode == "peek")
+        {
+            DirTmp = DirCur + DirSprt + IfPeekFolderName;
+        }
+        else
+        {
+            return "";
+        }
+
+        //try to open dir
+        if (PathExist(DirTmp))
+        {
+            DIR* dirPtr = opendir(DirTmp.c_str()); //this will be pointing to a directory
+            struct dirent* dirEntPtr ; //this will be a pointer pointing to a file
+            struct stat fileInfo; //we will use this to collect file infos
+
+            PrintString = PrintString + "|         #  |  File Name                                                         |      Type  |      size  |         Time Created  |        Time Modified  |  Permissions (USR,GRP,OTH)  |\n";
+            PrintString = PrintString + "|------------|--------------------------------------------------------------------|------------|------------|-----------------------|-----------------------|-----------------------------|\n";
+            //                                           0        1         2         3         4         5         6   4                               0        1        9     0        1        9     0        1         2    5
+            //                              12345678     1234567890123456789012345678901234567890123456789012345678901234     12345678     12345678     1234567890123456789     1234567890123456789     1234567890123456789012345
+                                              
+            int fileQtyCounter = -1;
+
+            while( (dirEntPtr = readdir(dirPtr)) != nullptr) //readdir will return a pointer to a file and dirEntPtr will catch it, it is almost like file reading
+            {
+                //we use this to get other infos of a file
+                //at this point, fileInfo will hold the information of the current file
+                stat((DirTmp + DirSprt + dirEntPtr->d_name).c_str(), &fileInfo);
+
+                //here we can get the dates
+                time_t stat_date_c_time = fileInfo.st_ctime;
+                time_t stat_date_m_time = fileInfo.st_mtime;
+                char stat_date_c_cstr[100];
+                char stat_date_m_cstr[100];
+                strftime(stat_date_c_cstr,sizeof(stat_date_c_cstr),"%Y-%m-%d %H:%M:%S",localtime(&stat_date_c_time));
+                strftime(stat_date_m_cstr,sizeof(stat_date_m_cstr),"%Y-%m-%d %H:%M:%S",localtime(&stat_date_m_time));
+                string stat_permission = PrintPermission(fileInfo.st_mode);
+
+                //here we can get the size
+                off_t stat_size = fileInfo.st_size;
+
+                //get name type
+                string stat_name = string(dirEntPtr->d_name);
+                string stat_type = "";
+
+                //if it has a file type, not any weird directories at all
+                if(stat_name != "." && stat_name != ".." && stat_name.length() > 2)
+                {
+                    int stat_dotPos = fowo_string.dOwOtect.FindCharPos(stat_name, '.', 'l');
+                    if(stat_dotPos > -1){stat_type = fowo_string.mOwOnip.trim_Safe(stat_name,stat_dotPos+1,stat_name.length()-1);/*does has a file extension*/} else{stat_type = "";}
+                }
+                else
+                {
+                    stat_type = "";
+                }
+
+                string TempBox0 = to_string(stat_size);
+                string TempBox1 = fowo_string.cOwOnvert.CstrToString(stat_date_c_cstr);
+                string TempBox2 = fowo_string.cOwOnvert.CstrToString(stat_date_m_cstr);
+
+                PrintString = PrintString +
+                    "|  "  + fowo_string.mOwOnip.padding(to_string(fileQtyCounter),  " ",  8, 'r') +
+                    "  |  " + fowo_string.mOwOnip.padding(stat_name,                  " ", 64, 'l') +
+                    "  |  " + fowo_string.mOwOnip.padding(stat_type,                  " ",  8, 'l') +
+                    "  |  " + fowo_string.mOwOnip.padding(TempBox0,                   " ",  8, 'r') +
+                    "  |  " + fowo_string.mOwOnip.padding(TempBox1,                   " ", 19, 'c') +
+                    "  |  " + fowo_string.mOwOnip.padding(TempBox2,                   " ", 19, 'c') +
+                    "  |  " + fowo_string.mOwOnip.padding(stat_permission,            " ", 25, 'r') +
+                    "  |\n";
+
+                fileQtyCounter++;
+            }
+
+            closedir(dirPtr);
+        }
+        else
+        {
+            PrintString = "";
+        }
+
+        return PrintString;
+    }
+
+    bool MakeDirectory( string InFolderName )
+    {
+        string RunConsoleCommand;
+
+        if (CurrentOperatingSystem == "linux")
+        {
+            RunConsoleCommand = "mkdir ";
+        }
+        else if (CurrentOperatingSystem == "windows")
+        {
+            RunConsoleCommand = "md ";
+        }
+        else if (CurrentOperatingSystem == "macos")
+        {
+            RunConsoleCommand = "mkdir ";
+        }
+
+        RunConsoleCommand = RunConsoleCommand + DirCur + DirSprt + InFolderName;
+        int FLAG = system(RunConsoleCommand.c_str());
+        if (FLAG == 0)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+
+        return false;
+    }
+
+    void Interface_kowonsole()
+    {
+        string USERCommandRaw;
+        vector<string> USERCommandVec = {"consoleStart"};
+        bool ExitFlipSwitch = false;
+        
+
+        setup(".","linux",'/',".","..");
+        
+
+        while(ExitFlipSwitch == false)
+        {
+            cout << endl << endl << endl << fowo_string.shOwOrthand.ColorText("b") << "> "; 
+            getline(cin,USERCommandRaw);
+            cout << fowo_string.shOwOrthand.ColorText("d");
+            USERCommandVec = fowo_string.mOwOnip.SeparateByChar(USERCommandRaw,' ');
+
+            if (USERCommandVec.size() > 0)
+            {
+                if (USERCommandVec[0] == "exit")
+                {
+                    ExitFlipSwitch = true;
+                }
+                else if (USERCommandVec[0] == "help")
+                {
+                    cout << fowo_string.shOwOrthand.ColorText("g");
+                    cout << "exit : close" << endl;
+                    cout << "clr  : clear screen" << endl;
+                    cout << endl;
+                    cout << "dwh                            : dir where   , print the current working directory" << endl;
+                    cout << "dls                            : dir list    , print all the contents of the current working directory" << endl;
+                    cout << "dpk < relative path >          : dir peek    , print all the contents of a relative directory " << endl;
+                    cout << "dgw < relative path >          : dir go walk , goto a relative directory, if a segment does not exist, then ignore the segment and continue" << endl;
+                    cout << "dgp < relative path >          : dir go plan , if the given relative directory exists, then go to that directory, else, stay" << endl;
+                    cout << endl;
+                    cout << "fmk < file name >     : file make   , make an empty file" << endl;
+                    cout << "fpt < file name >              : file print  , print the content of the file" << endl;
+                    cout << "fcp : file copy" << endl;
+                    cout << fowo_string.shOwOrthand.ColorText("d");
+                }
+                else if (USERCommandVec[0] == "clr") //clear
+                {
+                    fowo_cout.clearConsole();
+                }
+                else if (USERCommandVec[0] == "dwh") //dir where
+                {
+                    cout << fowo_string.shOwOrthand.ColorTextSegment("cur dir : " + DirCur,"g") << endl;
+                }
+                else if (USERCommandVec[0] == "dls") //dir list
+                {
+                    cout << fowo_string.shOwOrthand.ColorText("g") << "cur dir : " << DirCur << endl;
+                    cout << PrintDirectory("list","") << endl;
+                    cout << fowo_string.shOwOrthand.ColorText("d");
+                }
+                else if (USERCommandVec[0] == "dpk" && USERCommandVec.size() == 2) //dir peek
+                {
+                    string PrintResult = PrintDirectory("peek",USERCommandVec[1]);
+
+                    if (PrintResult == "")
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("directory does not exist\n", "r") << endl;
+                    }
+                    else
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment(PrintResult, "g") << endl;
+                    }   
+                }
+                else if (USERCommandVec[0] == "dgw" && USERCommandVec.size() == 2) //dir go walk
+                {
+                    GotoDir_Relative(USERCommandVec[1], "walk");
+                    cout << fowo_string.shOwOrthand.ColorTextSegment("cur dir : " + DirCur, "g") << endl;
+                }
+                else if (USERCommandVec[0] == "dgp" && USERCommandVec.size() == 2) //dir go plan
+                {
+                    bool isSuccessfull = GotoDir_Relative(USERCommandVec[1], "plan");
+                    if (isSuccessfull)
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("cur dir : " + DirCur + "\n", "g") << endl;
+                    }
+                    else
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("cur dir : " + DirCur + "\n", "r") << endl;
+                    }
+                }
+                else if (USERCommandVec[0] == "dmk" && USERCommandVec.size() == 2)//dir make
+                {
+                    bool isSuccessful = MakeDirectory(USERCommandVec[1]);
+                    if (isSuccessful)
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("made folder : " + USERCommandVec[1],"g") << endl;
+                    }
+                    else
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("failed to make folder","r") << endl;
+                    }
+                }
+                else if (USERCommandVec[0] == "fmk" && USERCommandVec.size() == 2)//file make
+                {
+                    fstream OwOReader;
+                    fstream OwOWriter;
+                    OwOReader.open(USERCommandVec[1],ios::in);
+                    if (OwOReader)
+                    {
+                        OwOReader.close();
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("file name already used in the same directory","r") << endl;
+                    }
+                    else
+                    {
+                        OwOWriter.open(USERCommandVec[1],ios::out);
+                        OwOWriter.close();
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("file created","g") << endl;
+                    }
+                    
+                }
+
+               
+            }
+
+
+            
+            
+            
+
+        }
+    }
+
+};
+
+
+
+
+
+
 class FOwO_network_action
 {
     public :
@@ -3657,6 +4182,10 @@ class FOwO_network
 
 
 
+
+
+
+
 class FOwO_cryptography
 {
     public :
@@ -4019,6 +4548,7 @@ class FOwO
     FOwO_math mOwOth;
     FOwO_string strOwOng;
     FOwO_network netOwOrk;
+    FOwO_directory dOwOctory;
     FOwO_cryptography cryptOwOgraphy;
     FOwO_experimental expOwOmental;
 
