@@ -1731,6 +1731,60 @@ class FOwO_string_manip
 
     }
 
+    vector<string> SeparateByString(string InBlob, string InSeparateString)
+    {
+        vector<string> output = {};
+        string PlateL = "";
+        string PlateM = "";
+        string PlateR = InBlob;
+
+        if(InBlob.length() < InSeparateString.length() || InBlob == "" || InSeparateString == "")
+        {
+            output = {};
+        }
+        else
+        {
+            while(PlateR != "")
+            {
+                //flush, get from PlateR
+                if(PlateR.length() == 1)
+                {
+                    PlateM = PlateM + PlateR;
+                    PlateR = "";
+                }
+                else
+                {
+                    PlateM = PlateM + trim(PlateR,0,0);
+                    PlateR = trim(PlateR,1,PlateR.length()-1);
+                }
+
+                //maintain length of PlateM
+                if(PlateM.length() > InSeparateString.length())
+                {
+                    PlateL = PlateL + trim(PlateM,0,0);
+                    PlateM = trim(PlateM,1,PlateM.length()-1);
+                }
+
+                //does PlateM matches target ?
+                if(PlateM == InSeparateString)
+                {
+                    output.push_back(PlateL);
+                    PlateL = "";
+                    PlateM = "";
+                }
+            
+            }
+
+            //there might be leftovers in PlateM
+            PlateL += PlateM + PlateR;
+            output.push_back(PlateL); 
+        }
+
+        return output;
+
+        
+    }
+
     string permute (vector<int> InPermuteList , string InString, char InErrorChar, int InStringRequiredLength)
     {
         //can be treated as reconstruct or permute or extend
@@ -1854,6 +1908,8 @@ class FOwO_string_manip
         return Plate;
         
     }
+
+    
 };
 
 class FOwO_string_detect
@@ -3238,6 +3294,7 @@ class FOwO_directory
     FOwO_cout fowo_cout;
     FOwO_string fowo_string;
     FOwO_directory_file fowo_dir_file;
+    FOwO_math_random fowo_math_random;
 
     string CurrentOperatingSystem; //windows , macos , linux
 
@@ -3646,7 +3703,7 @@ class FOwO_directory
                 {
                     fstream OwOReader;
                     fstream OwOWriter;
-                    OwOReader.open(USERCommandVec[1],ios::in);
+                    OwOReader.open(DirCur + DirSprt + USERCommandVec[1],ios::in);
                     if (OwOReader)
                     {
                         OwOReader.close();
@@ -3654,24 +3711,103 @@ class FOwO_directory
                     }
                     else
                     {
-                        OwOWriter.open(USERCommandVec[1],ios::out);
+                        OwOWriter.open(DirCur + DirSprt + USERCommandVec[1],ios::out);
                         OwOWriter.close();
                         cout << fowo_string.shOwOrthand.ColorTextSegment("file created","g") << endl;
                     }
                     
                 }
+                else if (USERCommandVec[0] == "fpt" && USERCommandVec.size() == 2)//file print
+                {
+                    fstream OwOReader;
+                    OwOReader.open(DirCur + DirSprt + USERCommandVec[1],ios::in);
+                    if (OwOReader)
+                    {
+                        char CharBox;
+                        while(OwOReader.get(CharBox))
+                        {
+                            cout << CharBox;
+                        }
+                        cout << endl;
+                        OwOReader.close();
+                    }
+                    else
+                    {
+                        OwOReader.close();
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("file not found","r") << endl;
+                    }
+                }
+                else if (USERCommandVec[0] == "fcp" && USERCommandVec.size() == 3)//file print, "fcp <fileSource> <fileDestination>"
+                {
+                    fstream OwOReader;
+                    fstream OwOTester;
+                    fstream OwOWriter;
 
-               
-            }
+                    OwOReader.open(DirCur + DirSprt + USERCommandVec[1],ios::in);
+                    OwOTester.open(DirCur + DirSprt + USERCommandVec[2],ios::in);
+                    
+                    bool isSuccessful = false;
+
+                    if (!OwOReader)//source file does not exist
+                    {
+                        isSuccessful = false;
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("source file not found","r") << endl;
+                    }
+                    else if (OwOTester) //if a file with the same name exists
+                    {
+                        cout << fowo_string.shOwOrthand.ColorTextSegment("destination file already exsists, overwrite ? (o) overwrite / (a) append / (n) new","y") << endl;
+                        string USERReply;
+                        getline(cin, USERReply);
+                        if (USERReply.at(0) == 'o') //overwrite
+                        {
+                            isSuccessful = true;
+                            OwOWriter.open(DirCur + DirSprt + USERCommandVec[2],ios::out);
+                        }
+                        else if (USERReply.at(0) == 'a') //append
+                        {
+                            isSuccessful = true;
+                            OwOWriter.open(DirCur + DirSprt + USERCommandVec[2],ios::app);
+                        }
+                        else if (USERReply.at(0) == 'n') //new file
+                        {
+                            isSuccessful = true;
+                            vector<string> tempVect = fowo_string.mOwOnip.SeparateByString(USERCommandVec[2],".");
+                            OwOWriter.open(DirCur + DirSprt + tempVect[0] + "_(" + to_string(fowo_math_random.Mersenne_int(0,4095)) + ")." + tempVect[1] ,ios::out);
+                        }
+                        else //cancel
+                        {
+                            isSuccessful = false;
+                            cout << fowo_string.shOwOrthand.ColorTextSegment("invalid choice, will cancel operation","r") << endl;
+                        }
+                    }
+                    else
+                    {
+                        isSuccessful = true;
+                        OwOWriter.open(DirCur + DirSprt + USERCommandVec[2],ios::out);
+                    }
+
+                    if (isSuccessful)
+                    {
+                        char CharBox;
+                        OwOReader.seekg(0L);
+                        while(OwOReader.get(CharBox))
+                        {
+                            cout << CharBox;
+                            OwOWriter << CharBox;
+                        }
+                        cout << endl;
+                    }
+
+                    OwOReader.close();
+                    OwOTester.close();
+                    OwOWriter.close();
+                }
 
 
-            
-            
-            
 
-        }
-    }
-
+            }//end if command is valid
+        }//end while
+    }//end method
 };
 
 
