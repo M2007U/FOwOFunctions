@@ -31,6 +31,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+//#include <fcntl.h>
 
 //for directories
 #include <sys/stat.h>
@@ -3964,6 +3965,8 @@ class FOwO_network_machine_server
 
         //STEP X : Success Connection
         cout << fowo_cout.ConsoleQuick("success","Connected, yay") << endl;
+        cout << fowo_cout.ConsoleQuick("success","ServerSocket : " + to_string(ServerSocket)) << endl;
+        cout << fowo_cout.ConsoleQuick("success","ClientSocket : " + to_string(ClientSocket)) << endl;
         cout << fowo_cout.ConsoleQuick("report","PortNumber : " + to_string(InPortNumber)) << endl;
         return true;
     }
@@ -3993,13 +3996,19 @@ class FOwO_network_machine_server
 
     string MessageRECV (int InBufferLength, bool InIfFailForceExit)
     {
+        
         //receive a message from a port or a socket
         //if it fails to receive a message, then force the program to quit
 
         char MessageOwO[InBufferLength];
         memset(MessageOwO, 0, InBufferLength); //clear the buffer
-
+        
+        //NOTE :
+        //if next time, some debugging says that the line is crashing the thing
+        //its the main.cpp fault, need to investigate
         int BytesReceived = recv(ClientSocket, MessageOwO, InBufferLength - 1, 0);
+        
+
         if (BytesReceived < 0)
         {
             cout << fowo_cout.ConsoleQuick("error","received failed") << endl;
@@ -4023,6 +4032,7 @@ class FOwO_network_machine_server
             MessageOwO[BytesReceived] = '\0';
             return string (MessageOwO);
         }
+
     }
 
     void Connection_Close()
@@ -4174,6 +4184,7 @@ class FOwO_network
     FOwO_network_machine_client clOwOnt;
 
     FOwO_cout fowo_cout;
+    FOwO_string fowo_string;
 
     /*
     when sending and receiving messages between servers and clients
@@ -4255,10 +4266,12 @@ class FOwO_network
 
         if(MachineType == "server")
         {
+            cout << fowo_string.shOwOrthand.ColorTextSegment("server send","y") << endl;
             OutString = sOwOrver.MessageSEND(InMessage);
         }
         else if (MachineType == "client")
         {
+            cout << fowo_string.shOwOrthand.ColorTextSegment("client send","y") << endl;
             OutString = clOwOnt.MessageSEND(InMessage);
         }
         else
@@ -4276,12 +4289,15 @@ class FOwO_network
 
         string OutString = "";
 
+
         if(MachineType == "server")
         {
+            cout << fowo_string.shOwOrthand.ColorTextSegment("server recv","y") << endl;
             OutString = sOwOrver.MessageRECV(InBufferLength, IfFailForceExit);
         }
         else if (MachineType == "client")
         {
+            cout << fowo_string.shOwOrthand.ColorTextSegment("client recv","y") << endl;
             OutString = clOwOnt.MessageRECV(InBufferLength, IfFailForceExit);
         }
         else

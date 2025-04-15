@@ -1,5 +1,5 @@
 //WARNING : when compiling, use the following command because this program uses threads :
-//g++ -std=c++11 -o Jon CSC487-Network-Flex.cpp -pthread
+//g++ -std=c++11 -o JUSTRUN main.cpp -pthread
 
 #include <iostream>
 #include <iomanip>
@@ -47,40 +47,10 @@ void threadFunction_send( thread &In_ThreadFunction_Recv ) //refer to int main v
         cout << "send? : ";
         getline(cin,BoxSEND);
 
-        //this is where we decide how the machine will react with the user
-        if (BoxSEND == "something")
+        if(BoxSEND.length() > 0)
         {
-            //do something
-        }
-        else if ( BoxSEND == "something else")
-        {
-            //do another thing
-        }
-        else
-        {
-            //just send the message
-            if(BoxSEND.length() > 0)
-            {
-                if (BoxSEND.at(0) == '/') //here we assume that if the first charracter of the user input is a /, then it is a command
-                {
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("y") << "you can try \"/help\" to have the entire list of commands" << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                }
-                else
-                {
-                    
-                    //encryption mechanisms goes here
-                    //here we can have something like outMessage = SomeEncryption(BoxSEND)
-                    //for now lets go raw
-                    string outMessage = "";
-                    outMessage = BoxSEND;
-                    
-                    fowo.netOwOrk.FLEX_MessageSEND(outMessage);
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("g") << endl;
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("y") << "sent : " << outMessage << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                }
- 
-            }
+            fowo.netOwOrk.FLEX_MessageSEND(BoxSEND);
+            cout << fowo.strOwOng.shOwOrthand.ColorTextSegment("sent : " + BoxSEND, "y") << endl;
         }
         
     }
@@ -101,35 +71,6 @@ void threadFunction_recv() //refer to int main void
         //at this point, BoxRECV is decrypted
         cout << endl << fowo.strOwOng.shOwOrthand.ColorText("y") << "recv  : " << BoxRECV << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
 
-        //do we print it out ?
-        //or it can be interpreted as a command ?
-        if (BoxRECV == "something")
-        {
-            //do something
-        }
-        else if ( BoxRECV == "something else")
-        {
-            //do another thing
-        }
-        else
-        {
-            //just send the message
-            if(BoxRECV.length() > 0)
-            {
-                if (BoxRECV.at(0) == '/') //here we assume that if the first charracter of the user input is a /, then it is a command
-                {
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("y") << "you can try \"/help\" to have the entire list of commands" << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                }
-                else
-                {   
-                    fowo.netOwOrk.FLEX_MessageSEND(inMessage);
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("g") << endl;
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("y") << "sent : " << inMessage << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                    cout << fowo.strOwOng.shOwOrthand.ColorText("d") << endl;
-                }
-
-            }
-        }
     }
     
 }
@@ -168,6 +109,9 @@ int main ()
         //in the lab, the IP address are usually the following
         //169.254.243.102
         //169.254.80.249
+
+        //to try this on local host
+        //target IP address is 127.0.0.1
     }
     else
     {
