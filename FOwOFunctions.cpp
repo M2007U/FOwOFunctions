@@ -1404,8 +1404,7 @@ class FOwO_string_convert
         stringstream buffer;
         buffer.clear();
         buffer << Input;
-        buffer >> Result;
-        return Result;
+        return buffer.str();
     }
 
 };
@@ -3064,8 +3063,17 @@ class FOwO_cout
         */
     }
 
+    /*
+    this will generate a string which represents a table,
+    InListHeader : a list of header title for each column
+    InListColumnWidth : a list of width for each columns
+    InListColumnAlign : for every column, which alignment to use ? l / m / r ?
+    InListData : what ever goes into the table
+    InCharLineX : the charracter to be used for the horizontal line
+    InCharLineY : the charracter to be used for the vertical line
+    */
     template <typename TYPE>
-    string GenerateTable (vector<string> InListHeader, vector<int> InListColumnWidth, vector<char> InListColumnAlign, vector<TYPE> InListData)
+    string GenerateTable (vector<string> InListHeader, vector<int> InListColumnWidth, vector<char> InListColumnAlign, vector<TYPE> InListData, char InCharLineX, char InCharLineY)
     {
         string Table;
 
@@ -3088,7 +3096,7 @@ class FOwO_cout
         for (int i = 0 ; i < InListHeader.size() ; i++)
         {
             //for every header
-            Table = Table + "| "; //add the left margin
+            Table = Table + InCharLineY + " "; //add the left margin
 
             if (InListHeader[i].length() <= InListColumnWidth[i] )
             {
@@ -3105,25 +3113,25 @@ class FOwO_cout
             Table = Table + " "; //add the right margin
 
         }
-        Table = Table + "|\n";
+        Table = Table + InCharLineY + "\n";
 
         //then the separation lines
         for (int i = 0 ; i < InListHeader.size() ; i++)
         {
             //for every header
-            Table = Table + "|";
+            Table = Table + InCharLineY;
 
             for (int j = 0 ; j < InListColumnWidth[i] + 2 ; j++)
             {
-                Table = Table + "-";
+                Table = Table + InCharLineX;
             }
         }
-        Table = Table + "|\n";
+        Table = Table + InCharLineY + "\n";
 
         //then the content
         for(int i = 0 ; i < InListData.size() ; i++)
         {
-            Table = Table + "| ";
+            Table = Table + InCharLineY + " ";
             string BoxStep0 = fowo_string.cOwOnvert.AnythingToString<TYPE>(InListData[i]);
             string BoxStep1 = fowo_string.mOwOnip.trim_Safe(BoxStep0,0, InListColumnWidth[ i % InListColumnWidth.size() ]);
             string BoxStep2 = fowo_string.mOwOnip.padding(BoxStep1," ", InListColumnWidth[ i % InListColumnWidth.size() ], InListColumnAlign[ i % InListColumnAlign.size()]);
@@ -3133,7 +3141,7 @@ class FOwO_cout
             //if the whole row is now done
             if (i % InListHeader.size() == InListHeader.size() - 1 )
             {
-                Table = Table + "|\n";
+                Table = Table + InCharLineY + "\n";
             }
         }
 
