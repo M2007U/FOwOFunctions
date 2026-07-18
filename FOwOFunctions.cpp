@@ -3025,6 +3025,10 @@ class FOwO_cout
 
     }
 
+    /*
+    InStringList : the lists of string variable/class/object to hold the values (passed by ref)
+    InMessages : what will the console print to ask the user
+    */
     void PromptUserStrings(vector<string*> InStringList, vector<string> InMessages)
     {
         if (InStringList.size() != InMessages.size())
